@@ -1,0 +1,6 @@
+@charset "ISO-8859-1";
+
+.dbox {
+	height: 30px;
+	border: 2px solid blue;
+}
