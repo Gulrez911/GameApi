@@ -16,14 +16,14 @@
 <body>
 	<div class="container">
 		<h1>Welcome Admin ${userlogin.username}</h1>
-
+<%-- 	<p>${listuser}</p> --%>
 		<form method="get" action="/GameApp/changePass">
 			<button type="submit" class="btn btn-primary">Change Password</button>
 		</form>
 		<!-- 		<button> -->
 		<!-- 			<a href="/changepass">Change Password</a> -->
 		<!-- 		</button> -->
-		<div id="accordion">
+	  <div id="accordion">
 			<c:forEach var="users" items="${listuser}">
 				<div class="card">
 					<div class="card-header" id="headingThree">
@@ -40,8 +40,8 @@
 						%>
 						<c:forEach var="usergame" items="${users.userGame}"  varStatus="status">
 							<div class="card-body">
-								<b>Attempt <c:out value="${status.count}"></c:out></b>: Star Points: ${usergame.starPoints} | Date: ${usergame.dateTime}|
-								Performance: ${usergame.percentage} |<a href="attemptinfo?gameId=${usergame.gameId}&atmptcount=${status.count}">  View
+								<b>Attempt ${usergame.attemptcount}<%-- <c:out value="${status.count}"></c:out> --%></b>: Star Points: ${usergame.starPoints} | Date: ${usergame.dateTime}|
+								Performance: ${usergame.percentage} |<a href="attemptinfo?gameId=${usergame.gameId}&atmptcount=${usergame.attemptcount}&mobile=${usergame.mobile}">  View
 									Details</a>
 							</div>
 						</c:forEach>
@@ -49,7 +49,7 @@
 
 				</div>
 			</c:forEach>
-		</div>
+		</div>  
 
 		<!-- 		<table border="1"> -->
 

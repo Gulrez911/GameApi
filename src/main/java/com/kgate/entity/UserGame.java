@@ -6,6 +6,8 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.OrderBy;
+import javax.persistence.OrderColumn;
 import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
@@ -19,6 +21,10 @@ public class UserGame {
 	@GeneratedValue(strategy = GenerationType.AUTO)
 	private Long gameId;
 
+	// @OrderColumn
+	private int attemptcount;
+
+	private String feedback2;
 	private String feedback;
 	private String duration;
 	private String dateTime;
@@ -52,6 +58,7 @@ public class UserGame {
 	private int qNo7;
 	private int qNo8;
 
+	// @OrderColumn
 	String mobile;
 
 	private String gameName;
@@ -79,8 +86,6 @@ public class UserGame {
 	private String qa6;
 	private String qa7;
 	private String qa8;
-
-	 
 
 	private Double score;
 
@@ -476,7 +481,6 @@ public class UserGame {
 		this.qa8 = qa8;
 	}
 
- 
 	public Double getScore() {
 		return score;
 	}
@@ -493,24 +497,39 @@ public class UserGame {
 		this.mobile = mobile;
 	}
 
+	public int getAttemptcount() {
+		return attemptcount;
+	}
+
+	public void setAttemptcount(int attemptcount) {
+		this.attemptcount = attemptcount;
+	}
+
 	@Override
 	public String toString() {
-		return "UserGame [gameId=" + gameId + ", feedback=" + feedback + ", duration=" + duration
-				+ ", dateTime=" + dateTime + ", percentage=" + percentage + ", objective="
-				+ objective + ", restult1=" + restult1 + ", restult2=" + restult2
-				+ ", restult3=" + restult3 + ", restult4=" + restult4 + ", restult5=" + restult5
-				+ ", restult6=" + restult6 + ", restult7=" + restult7 + ", restult8=" + restult8
-				+ ", type1=" + type1 + ", type2=" + type2 + ", type3=" + type3 + ", type4="
-				+ type4 + ", type5=" + type5 + ", type6=" + type6 + ", type7=" + type7
-				+ ", type8=" + type8 + ", qNo1=" + qNo1 + ", qNo2=" + qNo2 + ", qNo3=" + qNo3
-				+ ", qNo4=" + qNo4 + ", qNo5=" + qNo5 + ", qNo6=" + qNo6 + ", qNo7=" + qNo7
-				+ ", qNo8=" + qNo8 + ", mobile=" + mobile + ", gameName=" + gameName
-				+ ", played=" + played + ", starPoints=" + starPoints + ", q1=" + q1 + ", q2="
-				+ q2 + ", q3=" + q3 + ", q4=" + q4 + ", q5=" + q5 + ", q6=" + q6 + ", q7=" + q7
-				+ ", q8=" + q8 + ", qa1=" + qa1 + ", qa2=" + qa2 + ", qa3=" + qa3 + ", qa4="
-				+ qa4 + ", qa5=" + qa5 + ", qa6=" + qa6 + ", qa7=" + qa7 + ", qa8=" + qa8
-				+ " score=" + score
-				+ "]";
+		return "UserGame [gameId=" + gameId + ", attemptcount=" + attemptcount + ", feedback=" + feedback
+				+ ", duration=" + duration + ", dateTime=" + dateTime + ", percentage="
+				+ percentage + ", objective=" + objective + ", restult1=" + restult1
+				+ ", restult2=" + restult2 + ", restult3=" + restult3 + ", restult4=" + restult4
+				+ ", restult5=" + restult5 + ", restult6=" + restult6 + ", restult7=" + restult7
+				+ ", restult8=" + restult8 + ", type1=" + type1 + ", type2=" + type2
+				+ ", type3=" + type3 + ", type4=" + type4 + ", type5=" + type5 + ", type6="
+				+ type6 + ", type7=" + type7 + ", type8=" + type8 + ", qNo1=" + qNo1 + ", qNo2="
+				+ qNo2 + ", qNo3=" + qNo3 + ", qNo4=" + qNo4 + ", qNo5=" + qNo5 + ", qNo6="
+				+ qNo6 + ", qNo7=" + qNo7 + ", qNo8=" + qNo8 + ", mobile=" + mobile
+				+ ", gameName=" + gameName + ", played=" + played + ", starPoints=" + starPoints
+				+ ", q1=" + q1 + ", q2=" + q2 + ", q3=" + q3 + ", q4=" + q4 + ", q5=" + q5
+				+ ", q6=" + q6 + ", q7=" + q7 + ", q8=" + q8 + ", qa1=" + qa1 + ", qa2=" + qa2
+				+ ", qa3=" + qa3 + ", qa4=" + qa4 + ", qa5=" + qa5 + ", qa6=" + qa6 + ", qa7="
+				+ qa7 + ", qa8=" + qa8 + ", score=" + score + "]";
+	}
+
+	public String getFeedback2() {
+		return feedback2;
+	}
+
+	public void setFeedback2(String feedback2) {
+		this.feedback2 = feedback2;
 	}
 
 }

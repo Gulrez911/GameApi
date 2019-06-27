@@ -3,7 +3,12 @@ package com.kgate.controller;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Properties;
 
 import javax.mail.Message;
@@ -24,6 +29,8 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.SessionAttribute;
@@ -32,6 +39,8 @@ import org.springframework.web.servlet.ModelAndView;
 
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.JsonMappingException;
+import com.google.common.collect.HashMultiset;
+import com.google.common.collect.Multiset;
 import com.kgate.entity.User;
 import com.kgate.entity.UserGame;
 import com.kgate.entity.UserLogin;
@@ -55,18 +64,36 @@ public class UserController {
 	public UserController() {
 	}
 
-	@GetMapping("/downloadExcel")
+	@RequestMapping(value = "/downloadExcel", method = RequestMethod.GET)
 	public ModelAndView downloadExcel() {
+		// create some sample data
+		List<Book> listBooks = new ArrayList<Book>();
+		listBooks.add(new Book("Effective Java", "Joshua Bloch", "0321356683", "May 28, 2008", 38.11F));
+		listBooks.add(new Book("Head First Java", "Kathy Sierra & Bert Bates", "0596009208",
+				"February 9, 2005", 30.80F));
+		listBooks.add(new Book("Java Generics and Collections", "Philip Wadler", "0596527756",
+				"Oct 24, 2006", 29.52F));
+		listBooks.add(new Book("Thinking in Java", "Bruce Eckel", "0596527756", "February 20, 2006",
+				43.97F));
+		listBooks.add(new Book("Spring in Action", "Craig Walls", "1935182358", "June 29, 2011", 31.98F));
 
-		UserGame game = new UserGame();
-		List<UserGame> usergame = userService.getUserGame(game);
-		return new ModelAndView("excelView", "usergame", usergame);
+		// return a view which will be resolved by an excel view resolver
+		return new ModelAndView("excelView", "listBooks", listBooks);
 	}
+
+//	@GetMapping("/downloadExcel")
+//	public ModelAndView downloadExcel() {
+//
+//		UserGame game = new UserGame();
+//		List<UserGame> usergame = userService.getUserGame(game);
+//		return new ModelAndView("excelView", "usergame", usergame);
+//	}
 
 //	@GetMapping("/")
 //	public ModelAndView home() {
 //		return login();
 //	}
+
 	@GetMapping("/login")
 	public ModelAndView login() {
 		ModelAndView mav = new ModelAndView("login");
@@ -187,33 +214,169 @@ public class UserController {
 		}
 		System.out.println("userlogin: " + userLogin2);
 
-		UserGame usergame = new UserGame();
-		List<UserGame> game = userService.getUserGame(usergame);
+//		UserGame usergame = new UserGame();
+//		List<UserGame> game = userService.getUserGame(usergame);
 		User user = new User();
 		List<User> listuser = userService.getUser(user);
+		System.out.println("userlist: " + listuser);
+
+//		for (int i = 0; i <= listuser.size(); i++) {
+//			Object obj = listuser(i);
+//		}
+//		int x = 0;
+//		List<User> list2 = new ArrayList<User>();
+//		for (Object obj : listuser) {
+//			
+//			Object arr2[] = (Object[]) obj;
+//			User u = (User) arr2[0];
+//			System.out.println("user::::  " + u);
+//			list2.add(u);
+//			x++;
+//		}
+//		System.out.println("listuser2:::: " + list2);
+//		Object obj = listuser.get(0);
+//		System.out.println("obj: " + obj.toString());
+//		Object arr = (Object) obj;
+//		System.out.println("obj:::: " + arr);
+
+//		Object arr2[] = (Object[]) obj;
+//		System.out.println("obj2::::::: " + arr2[0]);
+//		for (int i = 0; i < listuser.size(); i++) {
+//			User u = (User) listuser.get(i);
+//			System.out.println("in for:  "+u.getFirstName());
+//		}
+
 		System.out.println("userlist: " + listuser);
 //		UserGame game = gamerepo.getOne((long) 94);
 //		System.out.println("game" + game);
 		mav.addObject("listuser", listuser);
 		mav.addObject("userlogin", userLogin2);
-		mav.addObject("listgame", game);
+//		mav.addObject("listgame", game);
 
 		return mav;
 	}
 
+//	@GetMapping("/attemptinfo")
+//	public ModelAndView attemptinfo(@RequestParam("gameId") Long gameId,
+//			@RequestParam("atmptcount") String atmptcount, @RequestParam("mobile") Long mobile) {
+//		ModelAndView mav = new ModelAndView("attemptinfo");
+//		System.out.println("attempt: starpoint " + gameId);
+//		User user = repo.getNoAttempt(mobile);
+//		System.out.println("user attempt: " + user.getNoOfAttempts());
+//		User gameid = repo.getGameId(mobile);
+//		System.out.println("game info of user:: " + gameid.getUserGame());
+//		List<UserGame> gameids = gameid.getUserGame();
+//		UserGame userGame = gamerepo.getUserInfo(gameId);
+//		mav.addObject("atmptcount", atmptcount);
+//		mav.addObject("user", user);
+//		User user2 = new User();
+//		mav.addObject("u", user2);
+//		mav.addObject("listid", gameids);
+////		
+//		Map<String, Integer> map2 = new LinkedHashMap<String, Integer>();
+//		Integer list = null;
+//		int x = 0;
+//		for (UserGame game : gameids) {
+//			x++;
+//			map2.put(game.getGameId().toString(), x);
+//			System.out.println("game id;;;;;;;;;;;;;;   " + game.getGameId() + "   ...........   "
+//					+ x);
+//		}
+//
+//		for (Entry<String, Integer> entry : map2.entrySet()) {
+//			System.out.println("Key = " + entry.getKey() + ", Value = " + entry.getValue());
+//		}
+//		mav.addObject("listobj22", map2);
+////		
+////		System.out.println("gameidsdsds:: "+gameids);
+//		mav.addObject("game", userGame);
+//
+//		Map<Integer, UserGame> GameMap = new LinkedHashMap<>();
+//		Map<String, String> genders = new LinkedHashMap<String, String>();
+//		genders.put("M", "Male");
+//		genders.put("F", "Female");
+//		mav.addObject("genders", genders);
+//
+//		return mav;
+//	}
+
 	@GetMapping("/attemptinfo")
 	public ModelAndView attemptinfo(@RequestParam("gameId") Long gameId,
-			@RequestParam("atmptcount") String atmptcount) {
+			@RequestParam("atmptcount") String atmptcount, @RequestParam("mobile") Long mobile) {
 		ModelAndView mav = new ModelAndView("attemptinfo");
 		System.out.println("attempt: starpoint " + gameId);
+		User user = repo.getNoAttempt(mobile);
+		System.out.println("user attempt: " + user.getNoOfAttempts());
+		User gameid = repo.getGameId(mobile);
+		System.out.println("game info of user:: " + gameid.getUserGame());
+		List<UserGame> gameids = gameid.getUserGame();
+
 		UserGame userGame = gamerepo.getUserInfo(gameId);
 		mav.addObject("atmptcount", atmptcount);
+		mav.addObject("user", user);
+		User user2 = new User();
+		mav.addObject("u", user2);
+		UserGame gameobj = new UserGame();
+		mav.addObject("gameobj", gameobj);
+//		mav.addObject("listid", gameids);
+//		
+		Map<Integer, Integer> map2 = new LinkedHashMap<Integer, Integer>();
+		Integer list = null;
+		int x = 0;
+		for (UserGame game : gameids) {
+			x++;
+//			map2.put(game.getGameId().toString(), x);
+//			System.out.println("game id;;;;;;;;;;;;;;   " + game.getGameId() + "   ...........   "
+//					+ x);
+			map2.put(game.getAttemptcount(), game.getAttemptcount());
+		}
+
+		for (Entry<Integer, Integer> entry : map2.entrySet()) {
+			System.out.println("Key = " + entry.getKey() + ", Value = " + entry.getValue());
+		}
+//		map3.put(Integer.parseInt(atmptcount), Integer.parseInt(atmptcount));
+		userGame.setAttemptcount(Integer.parseInt(atmptcount));
+		map2.put(Integer.parseInt(atmptcount), Integer.parseInt(atmptcount));
+		mav.addObject("listobj22", map2);
+//		mav.addObject("listobj23", map3);
+		mav.addObject("gmatmpts", gameids);
+//		System.out.println("gameidsdsds:: "+gameids);
+		mav.addObject("game", userGame);
+		return mav;
+	}
+
+	@GetMapping("/changeAttempt")
+	public ModelAndView changeAttempt(@RequestParam("attempt") int attempt,
+			@RequestParam("mobile") String mobile) {
+		ModelAndView mav = new ModelAndView("attemptinfo");
+		UserGame userGame = gamerepo.getByAtmptNo(attempt, mobile);
+		User gameid = repo.getGameId(Long.parseLong(mobile));
+		List<UserGame> gameids = gameid.getUserGame();
+		Map<Integer, Integer> map2 = new LinkedHashMap<Integer, Integer>();
+		Integer list = null;
+		int x = 0;
+		for (UserGame game : gameids) {
+			x++;
+//			map2.put(game.getGameId().toString(), x);
+//			System.out.println("game id;;;;;;;;;;;;;;   " + game.getGameId() + "   ...........   "
+//					+ x);
+			map2.put(game.getAttemptcount(), game.getAttemptcount());
+		}
+
+		for (Entry<Integer, Integer> entry : map2.entrySet()) {
+			System.out.println("Key = " + entry.getKey() + ", Value = " + entry.getValue());
+		}
+		UserGame gameobj = new UserGame();
+		mav.addObject("gameobj", gameobj);
+		mav.addObject("listobj22", map2);
+		mav.addObject("gmatmpts", gameids);
+//		System.out.println("gameidsdsds:: "+gameids);
 		mav.addObject("game", userGame);
 		return mav;
 	}
 
 	@PostMapping({ "/saveUserGame" })
-	public String saveUserGame(@RequestBody String json)
+	public ResponseEntity<?> saveUserGame(@RequestBody String json)
 			throws JsonParseException, JsonMappingException, IOException {
 		System.out.println("save called");
 
@@ -407,24 +570,32 @@ public class UserController {
 //			}
 
 //		}
+		User user12 = repo.getNoAttempt(Long.parseLong(phone));
+		System.out.println("user att:: " + user12.getNoOfAttempts());
+		int i = user12.getNoOfAttempts().intValue();
+		System.out.println("user att2:: " + i);
+		q2.setAttemptcount(i + 1);
 		UserGame user = null;
 		try {
 			user = userService.addUserGame(q2);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		/*
-		 * if (user == null) { return
-		 * ResponseEntity.ok().body("Mobile No. Doesn't Exist"); }
-		 * 
-		 * return ResponseEntity.ok().body("user saved...  ");
-		 */
-		return "save successfully";
+
+		if (user == null) {
+			return ResponseEntity.ok().body("No save");
+		}
+
+		return ResponseEntity.ok().body("saved successfully...  ");
+
+//		return "save successfully";
+
 	}
 
 	@GetMapping({ "/getUserDetails/{mobile}" })
 	public ResponseEntity<?> getUserDetails(
-			@org.springframework.web.bind.annotation.PathVariable("mobile") Long mobile) {
+			@org.springframework.web.bind.annotation.PathVariable("mobile") Long mobile,
+			@RequestBody String json) {
 		System.out.println("method called");
 
 		User user2 = null;
@@ -449,6 +620,22 @@ public class UserController {
 		User usr = userService.saveUser(user);
 
 		return ResponseEntity.ok().body("user saved...  " + usr);
+	}
+
+	@PostMapping({ "/savefeedback" })
+	public ResponseEntity<?> savefeedback(@RequestBody String mobile) throws ResourceNotFoundExceptionTest {
+		System.out.println("get feedback: " + mobile);
+		JSONObject jsonObject = new JSONObject(mobile);
+		String mob = (String) jsonObject.get("mobile");
+		String feed1 = (String) jsonObject.get("feedback1");
+		String feed2 = (String) jsonObject.get("feedback2");
+		System.out.println("mobile: " + mob);
+		User user2 = userService.getUserDetails(Long.parseLong(mob));
+		Long attempt = user2.getNoOfAttempts();
+		int atempt = attempt.intValue();
+		gamerepo.updateUserGame(mob, atempt, feed1, feed2);
+
+		return ResponseEntity.ok().body("save");
 	}
 
 	public void sendMail(String to, String message, String subject) {

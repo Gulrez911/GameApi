@@ -16,14 +16,13 @@
 		var selectedValue = $("#context").val();
 		var test = "1";
 		// 		var x=${status.count};
-		// 		alert("Hi " + test + ": " + selectedValue)
+				alert("Hi " + test + ": "+selectedValue)
 		console.log(selectedValue);
 		selectedValue = encodeURIComponent(selectedValue);
 		console.log(selectedValue);
-		var mobile = ${param.mobile};
-		// 				alert(mobile)
-		window.location = "changeAttempt?attempt=" + selectedValue + "&mobile="
-				+ mobile;
+// 		alert(selectedValue)
+		window.location = "changeAttempt?no=" + test + "&gameId="
+				+ selectedValue;
 	}
 </script>
 <script>
@@ -50,27 +49,26 @@
 		<div class="row">
 			<div class="col-sm-1"></div>
 			<div class="col-sm-10" style="background-color: #338DFF; font-size: large;">
-				<b>Phone Number:</b> ${game.mobile} | Attempt ${game.attemptcount}
-				<form:select path="game.attemptcount" class="form-control" id="context"
-					onchange="changeContext1()">
-					<%-- 				<form:option value="${listobj22}" /> --%>
+				<b>Phone Number:</b> ${game.mobile} | Attempt ${atmptcount} details ${user.noOfAttempts}
+				<%-- 				<form:select id="context" path="u.noOfAttempts" onchange="changeContext1()"> --%>
+				<%-- 										<c:forEach begin="1" end="${user.noOfAttempts}" var="role" varStatus="status"> --%>
+				<%-- 											<option value="${status.count}" id="${status.count}">${status.count}</option> --%>
+				<%-- 										</c:forEach> --%>
+				<%-- 					<c:forEach begin="1" end="${user.noOfAttempts}" var="role" varStatus="status"> --%>
+				<%-- 						<option value="${gameid.gameId}" >${status.count}</option> --%>
+				<%-- 					</c:forEach> --%>
+				<%-- 					<form:options items="${listid.UserGame}" /> --%>
+				<%-- 				</form:select> --%>
+				<form:select path="u.noOfAttempts" class="form-control" id="context" onchange="changeContext1()">
 					<form:options items="${listobj22}" />
 				</form:select>
 			</div>
 		</div>
 
 		<div class="row">
-			<div class="col-sm-1"></div>
-			<div class="col-sm-3" align="right">
-				Question: ${game.qNo1}<br> <br> <br> <br> <br>Question: ${game.qNo2}<br>
-				<br> <br> <br><br><br>Question: ${game.qNo3}<br> <br> <br><br><br>Question:
-				${game.qNo4}<br> <br> <br><br><br> <br>Question: ${game.qNo5}<br> <br> <br> 
-				<br>Question: ${game.qNo6}<br>   <br><br><br>Question: ${game.qNo7}<br><br><br>
-				<br> <br> <br>Question: ${game.qNo8}
-			</div>
-			<!-- 				<div class="col-sm-1"></div> -->
-			<!-- 				<div class="col-sm-10">test</div> -->
-			<div class="col-sm-7" style="background-color: yellow;">
+			<div class="col-sm-2"></div>
+			<div class="col-sm-1">Question NO: ${game.qNo1}</div>
+			<div class="col-sm-8" style="background-color: yellow;">
 				<b>Question no1:</b> ${game.q1}
 				<c:choose>
 					<c:when test="${game.restult1== 'correct'}">

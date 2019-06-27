@@ -10,6 +10,7 @@ import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.JoinTable;
 import javax.persistence.OneToMany;
+import javax.persistence.OrderBy;
 import javax.persistence.Table;
 import javax.persistence.Version;
 
@@ -26,8 +27,9 @@ public class User {
 	@OneToMany(targetEntity = UserGame.class, cascade = CascadeType.ALL, fetch = FetchType.EAGER)
 	@JoinTable(name = "user_usergame", joinColumns = { @JoinColumn(name = "mobile") }, inverseJoinColumns = {
 			@JoinColumn(name = "gameId") })
+	@OrderBy("attemptcount ASC, mobile ASC")
 	private List<UserGame> userGame = new ArrayList<>();
-
+  
 	public List<UserGame> getUserGame() {
 		return userGame;
 	}
