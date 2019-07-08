@@ -4,7 +4,9 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -100,6 +102,33 @@ public class UserController {
 		UserLogin userLogin = new UserLogin();
 		mav.addObject("userLogin", userLogin);
 		return mav;
+	}
+
+	@GetMapping("/getStarPoint/{mobile}")
+	public ResponseEntity<?> getStarPoint(
+			@org.springframework.web.bind.annotation.PathVariable("mobile") Long mobile) {
+//		ModelAndView mav = new ModelAndView("login");
+//		String mobile = "9833685778";
+		User user = repo.getNoAttempt(mobile);
+		if (user == null) {
+			return ResponseEntity.ok().body("no. doesn't exist");
+		}
+		System.out.println("no attempt: " + user.getNoOfAttempts());
+		String list2 = gamerepo.getRank(mobile.toString(), user.getNoOfAttempts().intValue());
+		System.out.println("rank: " + list2);
+		List<String> list = gamerepo.getStarPoint();
+		System.out.println("star points:  " + list);
+		UserLogin userLogin = new UserLogin();
+
+		list2 = list2 + ",";
+//		list.replaceAll(null);
+//		Iterator<String> iterator = list.iterator();
+		String arr = list.toString().replace("[", "") // remove the right bracket
+				.replace("]", "").replaceAll("\\s", "");
+		System.out.println("1111::::::::::::::" + arr);
+		String data = (list2 + arr).toString().trim();
+		System.out.println("2::::::: " + data.replaceAll("\\s", ""));
+		return ResponseEntity.ok().body(data);
 	}
 
 	@GetMapping({ "/validateMobile/{mobile}" })
@@ -220,32 +249,6 @@ public class UserController {
 		List<User> listuser = userService.getUser(user);
 		System.out.println("userlist: " + listuser);
 
-//		for (int i = 0; i <= listuser.size(); i++) {
-//			Object obj = listuser(i);
-//		}
-//		int x = 0;
-//		List<User> list2 = new ArrayList<User>();
-//		for (Object obj : listuser) {
-//			
-//			Object arr2[] = (Object[]) obj;
-//			User u = (User) arr2[0];
-//			System.out.println("user::::  " + u);
-//			list2.add(u);
-//			x++;
-//		}
-//		System.out.println("listuser2:::: " + list2);
-//		Object obj = listuser.get(0);
-//		System.out.println("obj: " + obj.toString());
-//		Object arr = (Object) obj;
-//		System.out.println("obj:::: " + arr);
-
-//		Object arr2[] = (Object[]) obj;
-//		System.out.println("obj2::::::: " + arr2[0]);
-//		for (int i = 0; i < listuser.size(); i++) {
-//			User u = (User) listuser.get(i);
-//			System.out.println("in for:  "+u.getFirstName());
-//		}
-
 		System.out.println("userlist: " + listuser);
 //		UserGame game = gamerepo.getOne((long) 94);
 //		System.out.println("game" + game);
@@ -255,50 +258,6 @@ public class UserController {
 
 		return mav;
 	}
-
-//	@GetMapping("/attemptinfo")
-//	public ModelAndView attemptinfo(@RequestParam("gameId") Long gameId,
-//			@RequestParam("atmptcount") String atmptcount, @RequestParam("mobile") Long mobile) {
-//		ModelAndView mav = new ModelAndView("attemptinfo");
-//		System.out.println("attempt: starpoint " + gameId);
-//		User user = repo.getNoAttempt(mobile);
-//		System.out.println("user attempt: " + user.getNoOfAttempts());
-//		User gameid = repo.getGameId(mobile);
-//		System.out.println("game info of user:: " + gameid.getUserGame());
-//		List<UserGame> gameids = gameid.getUserGame();
-//		UserGame userGame = gamerepo.getUserInfo(gameId);
-//		mav.addObject("atmptcount", atmptcount);
-//		mav.addObject("user", user);
-//		User user2 = new User();
-//		mav.addObject("u", user2);
-//		mav.addObject("listid", gameids);
-////		
-//		Map<String, Integer> map2 = new LinkedHashMap<String, Integer>();
-//		Integer list = null;
-//		int x = 0;
-//		for (UserGame game : gameids) {
-//			x++;
-//			map2.put(game.getGameId().toString(), x);
-//			System.out.println("game id;;;;;;;;;;;;;;   " + game.getGameId() + "   ...........   "
-//					+ x);
-//		}
-//
-//		for (Entry<String, Integer> entry : map2.entrySet()) {
-//			System.out.println("Key = " + entry.getKey() + ", Value = " + entry.getValue());
-//		}
-//		mav.addObject("listobj22", map2);
-////		
-////		System.out.println("gameidsdsds:: "+gameids);
-//		mav.addObject("game", userGame);
-//
-//		Map<Integer, UserGame> GameMap = new LinkedHashMap<>();
-//		Map<String, String> genders = new LinkedHashMap<String, String>();
-//		genders.put("M", "Male");
-//		genders.put("F", "Female");
-//		mav.addObject("genders", genders);
-//
-//		return mav;
-//	}
 
 	@GetMapping("/attemptinfo")
 	public ModelAndView attemptinfo(@RequestParam("gameId") Long gameId,
@@ -397,12 +356,6 @@ public class UserController {
 		System.out.println("getObject >>>>>>> " + getObject);
 		JSONArray getArray = jsonObject.getJSONArray("QuestionData");
 		System.out.println("getArraytObject >>>>>>> " + getArray);
-		/*
-		 * for (int i = 0; i < getArray.length(); i++) { JSONObject innerObj =
-		 * getArray.getJSONObject(i); for (Iterator it = innerObj.keys(); it.hasNext();)
-		 * { String key = (String) it.next(); System.out.println(key + ":" +
-		 * innerObj.get(key)); } }
-		 */
 		System.out.println();
 //		ObjectMapper mapper = new ObjectMapper();
 //		Welcome welcome = mapper.readValue(json, Welcome.class);
@@ -413,8 +366,9 @@ public class UserController {
 		String duration = (String) getObject.get("Duration");
 		String dateTime = (String) getObject.get("DateTime");
 		String percentage = (String) getObject.get("Percentage");
+		String starPoints = (String) getObject.get("StarPoints");
 		System.out.println("done: " + phone + " " + feedback + " " + duration + " " + dateTime + " "
-				+ percentage);
+				+ percentage + " " + starPoints);
 		UserGame q2 = new UserGame();
 //		for (int i = 0; i < getArray.length(); i++) {
 		JSONObject objects1 = getArray.getJSONObject(0);
@@ -439,6 +393,7 @@ public class UserController {
 		q2.setQa1(option1);
 		q2.setRestult1(result1);
 		q2.setType1(type1);
+		q2.setStarPoints(Long.parseLong(starPoints));
 
 		JSONObject objects2 = getArray.getJSONObject(1);
 
@@ -624,8 +579,18 @@ public class UserController {
 
 	@PostMapping({ "/savefeedback" })
 	public ResponseEntity<?> savefeedback(@RequestBody String mobile) throws ResourceNotFoundExceptionTest {
-		System.out.println("get feedback: " + mobile);
-		JSONObject jsonObject = new JSONObject(mobile);
+		System.out.println("get feedback:>>>>>>>> " + mobile);
+		String url = mobile;
+		String result = "";
+		try {
+			result = java.net.URLDecoder.decode(url, StandardCharsets.UTF_8.name());
+			System.out.println("check url:>>>>>>>>  " + result);
+		} catch (UnsupportedEncodingException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
+		JSONObject jsonObject = new JSONObject(result);
+		System.out.println("jsonObject::::::::::::::  " + jsonObject);
 		String mob = (String) jsonObject.get("mobile");
 		String feed1 = (String) jsonObject.get("feedback1");
 		String feed2 = (String) jsonObject.get("feedback2");

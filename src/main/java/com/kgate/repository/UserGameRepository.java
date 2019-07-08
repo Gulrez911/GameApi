@@ -30,4 +30,12 @@ public interface UserGameRepository extends JpaRepository<UserGame, Long> {
 	public void updateUserGame(@Param("mobile") String mobile, @Param("attemptcount") int attemptcount,
 			@Param("feedback2") String feedback2, @Param("feedback") String feedback);
 
+//	@Query("FROM UserGame u  ORDER BY u.starPoints DESC Limit 0, 3")
+//	@Query(value = "select u.starPoints UserGame u ORDER BY u.starPoints DESC LIMIT 3", nativeQuery = true)
+	@Query(value = "select starPoints from UserGame ORDER BY starPoints DESC LIMIT 3", nativeQuery = true)
+	public List<String> getStarPoint();
+
+	@Query(value = "select find_in_set(starPoints,(select group_concat(starPoints order by starPoints desc) from UserGame)) as rank from UserGame where mobile=:mobile and attemptcount=:attemptcount", nativeQuery = true)
+	public String getRank(@Param("mobile") String mobile, @Param("attemptcount") int attemptcount);
+
 }
