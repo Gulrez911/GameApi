@@ -3,7 +3,10 @@ package com.kgate.controller;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -25,6 +28,7 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.json.MappingJacksonValue;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -32,6 +36,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.SessionAttribute;
 import org.springframework.web.bind.annotation.SessionAttributes;
@@ -39,13 +44,16 @@ import org.springframework.web.servlet.ModelAndView;
 
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.JsonMappingException;
-import com.google.common.collect.HashMultiset;
-import com.google.common.collect.Multiset;
+import com.fasterxml.jackson.databind.ser.FilterProvider;
+import com.fasterxml.jackson.databind.ser.impl.SimpleBeanPropertyFilter;
+import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
+import com.kgate.bean.LeaderBoard;
 import com.kgate.entity.User;
 import com.kgate.entity.UserGame;
 import com.kgate.entity.UserLogin;
 import com.kgate.exception.ResourceNotFoundExceptionTest;
 import com.kgate.repository.UserGameRepository;
+import com.kgate.repository.UserLoginRepository;
 import com.kgate.repository.UserRepository;
 import com.kgate.service.UserService;
 
@@ -58,27 +66,48 @@ public class UserController {
 	UserRepository repo;
 	@Autowired
 	UserGameRepository gamerepo;
+	@Autowired
+	UserLoginRepository loginrepo;
 
 	private static Logger logger = LogManager.getLogger(UserController.class);
 
 	public UserController() {
 	}
 
-	@RequestMapping(value = "/downloadExcel", method = RequestMethod.GET)
-	public ModelAndView downloadExcel() {
-		// create some sample data
-		List<Book> listBooks = new ArrayList<Book>();
-		listBooks.add(new Book("Effective Java", "Joshua Bloch", "0321356683", "May 28, 2008", 38.11F));
-		listBooks.add(new Book("Head First Java", "Kathy Sierra & Bert Bates", "0596009208",
-				"February 9, 2005", 30.80F));
-		listBooks.add(new Book("Java Generics and Collections", "Philip Wadler", "0596527756",
-				"Oct 24, 2006", 29.52F));
-		listBooks.add(new Book("Thinking in Java", "Bruce Eckel", "0596527756", "February 20, 2006",
-				43.97F));
-		listBooks.add(new Book("Spring in Action", "Craig Walls", "1935182358", "June 29, 2011", 31.98F));
+	@RequestMapping(value = "/downloadUserExcel.xls", method = RequestMethod.GET)
+	public ModelAndView downloadUserExcel() throws ParseException {
+		ModelAndView mav = new ModelAndView("excelView2");
+		List<User> listUser = repo.findAll();
+		mav.addObject("listUser", listUser);
+		return mav;
+	}
 
-		// return a view which will be resolved by an excel view resolver
-		return new ModelAndView("excelView", "listBooks", listBooks);
+	@RequestMapping(value = "/BallOnTheBeach_PlayerInformationReport.xls", method = RequestMethod.GET)
+	public ModelAndView downloadExcel() throws ParseException {
+		ModelAndView mav = new ModelAndView("excelView");
+		List<UserGame> listGame = gamerepo.getUserGame2();
+		for (int i = 0; i < listGame.size(); i++) {
+			UserGame ga = new UserGame();
+			ga = listGame.get(i);
+			String da = ga.getDateTime();
+			da = da.replaceAll(".*,", "");
+			// 01:59:37, 08-14-2019
+			Date date1;
+			try {
+				System.out.println("da is " + da);
+				date1 = new SimpleDateFormat("MM/dd/yyyy").parse(da);
+				System.out.println("da parsed 1");
+			} catch (Exception e) {
+				System.out.println("da parsed fail 1");
+				date1 = new SimpleDateFormat("MM-dd-yyyy").parse(da);
+				System.out.println("da parsed 2");
+			}
+			SimpleDateFormat formatter = new SimpleDateFormat("dd-MM-yyyy");
+			String strDate = formatter.format(date1);
+			ga.setDateTime(strDate);
+		}
+		mav.addObject("listGame", listGame);
+		return mav;
 	}
 
 //	@GetMapping("/downloadExcel")
@@ -96,10 +125,64 @@ public class UserController {
 
 	@GetMapping("/login")
 	public ModelAndView login() {
-		ModelAndView mav = new ModelAndView("login");
+		ModelAndView mav = new ModelAndView("login_new");
 		UserLogin userLogin = new UserLogin();
 		mav.addObject("userLogin", userLogin);
 		return mav;
+	}
+
+	@GetMapping("/getMaxStarPoint/{mobile}")
+	public ResponseEntity<?> getMaxStarPoint(
+			@org.springframework.web.bind.annotation.PathVariable("mobile") Long mobile) {
+		String data = gamerepo.getMaxStarPoint(mobile.toString());
+		System.out.println("starpoints: " + data);
+		return ResponseEntity.ok().body(data);
+	}
+
+	@GetMapping("/getStarPoint/{mobile}")
+	public ResponseEntity<?> getStarPoint(
+			@org.springframework.web.bind.annotation.PathVariable("mobile") Long mobile) {
+//		ModelAndView mav = new ModelAndView("login");
+//		String mobile = "9833685778";
+		User user = repo.getNoAttempt(mobile);
+		System.out.println("user.........." + user);
+		if (user == null) {
+			return ResponseEntity.ok().body("no. doesn't exist");
+		}
+		System.out.println("no attempt: " + user.getNoOfAttempts());
+//		String list2 = gamerepo.getRank(mobile.toString());
+//		System.out.println("rank: " + list2);
+//		List<String> list = gamerepo.getStarPoint();
+//		System.out.println("star points:  " + list);
+//		UserLogin userLogin = new UserLogin();
+//		list2 = list2.split("\\,")[0];
+//		System.out.println("rank list2::::::::::::::::;; " + list2);
+//		list2 = list2 + ",";
+//		String arr = list.toString().replace("[", "") // remove the right bracket
+//				.replace("]", "").replaceAll("\\s", "");
+//		System.out.println("1111::::::::::::::" + arr);
+//		String data = (list2 + arr).toString().trim();
+//		System.out.println("2::::::: " + data.replaceAll("\\s", ""));
+		String list2 = gamerepo.getRank(mobile.toString());
+		System.out.println("Position: " + list2.substring(list2.indexOf(",") + 1));
+		list2 = list2.substring(list2.indexOf(",") + 1);
+		List<Object> list = gamerepo.getlistRank();
+		List<LeaderBoard> li = new ArrayList<>();
+		String top = null;
+//		for (int i=1;i<=3;i++) {
+		Object arr1[] = (Object[]) list.get(0);
+		String s1, s2, s3, s4;
+		s1 = arr1[1].toString();
+		Object arr2[] = (Object[]) list.get(1);
+		s2 = arr2[1].toString();
+		Object arr3[] = (Object[]) list.get(2);
+		s3 = arr3[1].toString();
+		System.out.println("Rank list: " + s1 + " " + s2 + " " + s3);
+		// }
+
+		System.out.println("testing........... " + list);
+		String data = list2 + "," + s1 + "," + s2 + "," + s3;
+		return ResponseEntity.ok().body(data);
 	}
 
 	@GetMapping({ "/validateMobile/{mobile}" })
@@ -196,8 +279,104 @@ public class UserController {
 		return mav;
 	}
 
+	@GetMapping("/leaderboard")
+	public ModelAndView getRankList() {
+		ModelAndView mav = new ModelAndView("leaderboard");
+		List<Object> list = gamerepo.getlistRank();
+		List<LeaderBoard> li = new ArrayList<>();
+		for (Object ob : list) {
+			LeaderBoard board = new LeaderBoard();
+			Object arr[] = (Object[]) ob;
+			String s1, s2, s3, s4;
+			s1 = arr[0].toString();
+			s2 = arr[1].toString();
+			s3 = arr[2].toString();
+			s4 = arr[3].toString();
+			System.out.println("111111111:::::: " + s1 + " " + s2 + " " + s3 + " " + s4);
+			board.setMobile(Long.parseLong(s3));
+			board.setStarPoints(s2);
+			board.setRank(s4);
+			li.add(board);
+		}
+
+		System.out.println("testing........... " + list);
+		mav.addObject("list", li);
+		return mav;
+
+	}
+
+	@GetMapping({ "/getRankListAPI" })
+	public MappingJacksonValue getRankListAPI() {
+		List<Object> list = gamerepo.getlistRank();
+		List<LeaderBoard> li = new ArrayList<>();
+		for (Object ob : list) {
+			LeaderBoard board = new LeaderBoard();
+			Object arr[] = (Object[]) ob;
+			String s1, s2, s3, s4;
+//			s1 = arr[0].toString();
+			s2 = arr[1].toString();
+//			s3 = arr[2].toString();
+			s4 = arr[3].toString();
+//			System.out.println("111111111:::::: " + s1 + " " + s2 + " " + s3 + " " + s4);
+//			board.setMobile(Long.parseLong(s3));
+			board.setStarPoints(s2);
+			board.setRank(s4);
+			li.add(board);
+		}
+		SimpleBeanPropertyFilter filter = SimpleBeanPropertyFilter.filterOutAllExcept("starPoints");
+
+		FilterProvider filters = new SimpleFilterProvider().addFilter("beanFilter", filter);
+
+		MappingJacksonValue mapping = new MappingJacksonValue(li);
+
+		mapping.setFilters(filters);
+		return mapping;
+	}
+
+	@GetMapping("/sendMail")
+	public @ResponseBody Map<String, Object> sendMail() {
+		Map<String, Object> map = new HashMap<>();
+		UserLogin login = loginrepo.getInfo();
+		UserController uc = new UserController();
+		uc.sendMail("gulfarooqui09@gmail.com", "Your UserName is: " + login.getUsername()
+				+ "\n Your Password is: " + login.getPassword(), "check mail");
+		map.put("data", "Login and Password Send to email address");
+		return map;
+	}
+
+	@GetMapping("/nextMobile")
+	public ModelAndView userLogin(@RequestParam("mobile") String mobile) throws ParseException {
+		ModelAndView mav = new ModelAndView("report2");
+		List<UserGame> listGame = gamerepo.mobUsergame(mobile);
+		User user = new User();
+		List<User> listuser = userService.getUser(user);
+		for (int i = 0; i < listGame.size(); i++) {
+			UserGame ga = new UserGame();
+			ga = listGame.get(i);
+			String da = ga.getDateTime();
+			da = da.replaceAll(".*,", "");
+			// 01:59:37, 08-14-2019
+			Date date1;
+			try {
+				System.out.println("da is " + da);
+				date1 = new SimpleDateFormat("MM/dd/yyyy").parse(da);
+				System.out.println("da parsed 1");
+			} catch (Exception e) {
+				System.out.println("da parsed fail 1");
+				date1 = new SimpleDateFormat("MM-dd-yyyy").parse(da);
+				System.out.println("da parsed 2");
+			}
+			SimpleDateFormat formatter = new SimpleDateFormat("dd/MM/yyyy");
+			String strDate = formatter.format(date1);
+			ga.setDateTime(strDate);
+		}
+		mav.addObject("listGame", listGame);
+		mav.addObject("listuser", listuser);
+		return mav;
+	}
+
 	@PostMapping("/userLogin")
-	public ModelAndView userLogin(@ModelAttribute("userLogin") UserLogin userLogin) {
+	public ModelAndView userLogin(@ModelAttribute("userLogin") UserLogin userLogin) throws ParseException {
 		ModelAndView mav = new ModelAndView();
 		logger.info("UserLogin Method called..");
 		UserLogin userLogin2 = null;
@@ -207,10 +386,10 @@ public class UserController {
 		} catch (Exception e) {
 		}
 		if (userLogin2 != null) {
-			mav.setViewName("report");
+			mav.setViewName("report2");
 		} else {
 			mav.addObject("error", "email or password incorrect");
-			mav.setViewName("login");
+			mav.setViewName("login_new");
 		}
 		System.out.println("userlogin: " + userLogin2);
 
@@ -219,33 +398,38 @@ public class UserController {
 		User user = new User();
 		List<User> listuser = userService.getUser(user);
 		System.out.println("userlist: " + listuser);
-
-//		for (int i = 0; i <= listuser.size(); i++) {
-//			Object obj = listuser(i);
-//		}
-//		int x = 0;
-//		List<User> list2 = new ArrayList<User>();
-//		for (Object obj : listuser) {
-//			
-//			Object arr2[] = (Object[]) obj;
-//			User u = (User) arr2[0];
-//			System.out.println("user::::  " + u);
-//			list2.add(u);
-//			x++;
-//		}
-//		System.out.println("listuser2:::: " + list2);
-//		Object obj = listuser.get(0);
-//		System.out.println("obj: " + obj.toString());
-//		Object arr = (Object) obj;
-//		System.out.println("obj:::: " + arr);
-
-//		Object arr2[] = (Object[]) obj;
-//		System.out.println("obj2::::::: " + arr2[0]);
+		List<UserGame> listGame = new ArrayList<>();
 //		for (int i = 0; i < listuser.size(); i++) {
-//			User u = (User) listuser.get(i);
-//			System.out.println("in for:  "+u.getFirstName());
+		User us = new User();
+//		 System.out.println(listuser.get(i));
+		try {
+
+			us = listuser.get(0);
+			listGame = us.getUserGame();
+			System.out.println("game::::::: " + listGame);
+			for (int i = 0; i < listGame.size(); i++) {
+				UserGame ga = new UserGame();
+
+				ga = listGame.get(i);
+				String da = ga.getDateTime();
+				System.out.println("date:::: " + da);
+				System.out.println("change date::::: " + da.replaceAll(".*,", ""));
+				da = da.replaceAll(".*,", "");
+
+				Date date1 = new SimpleDateFormat("MM/dd/yyyy").parse(da);
+
+				Date date = new Date();
+				SimpleDateFormat formatter = new SimpleDateFormat("dd/MM/yyyy");
+				String strDate = formatter.format(date1);
+				System.out.println(strDate);
+				ga.setDateTime(strDate);
+			}
+		} catch (Exception e) {
+			// TODO: handle exception
+		}
 //		}
 
+		mav.addObject("listGame", listGame);
 		System.out.println("userlist: " + listuser);
 //		UserGame game = gamerepo.getOne((long) 94);
 //		System.out.println("game" + game);
@@ -255,50 +439,6 @@ public class UserController {
 
 		return mav;
 	}
-
-//	@GetMapping("/attemptinfo")
-//	public ModelAndView attemptinfo(@RequestParam("gameId") Long gameId,
-//			@RequestParam("atmptcount") String atmptcount, @RequestParam("mobile") Long mobile) {
-//		ModelAndView mav = new ModelAndView("attemptinfo");
-//		System.out.println("attempt: starpoint " + gameId);
-//		User user = repo.getNoAttempt(mobile);
-//		System.out.println("user attempt: " + user.getNoOfAttempts());
-//		User gameid = repo.getGameId(mobile);
-//		System.out.println("game info of user:: " + gameid.getUserGame());
-//		List<UserGame> gameids = gameid.getUserGame();
-//		UserGame userGame = gamerepo.getUserInfo(gameId);
-//		mav.addObject("atmptcount", atmptcount);
-//		mav.addObject("user", user);
-//		User user2 = new User();
-//		mav.addObject("u", user2);
-//		mav.addObject("listid", gameids);
-////		
-//		Map<String, Integer> map2 = new LinkedHashMap<String, Integer>();
-//		Integer list = null;
-//		int x = 0;
-//		for (UserGame game : gameids) {
-//			x++;
-//			map2.put(game.getGameId().toString(), x);
-//			System.out.println("game id;;;;;;;;;;;;;;   " + game.getGameId() + "   ...........   "
-//					+ x);
-//		}
-//
-//		for (Entry<String, Integer> entry : map2.entrySet()) {
-//			System.out.println("Key = " + entry.getKey() + ", Value = " + entry.getValue());
-//		}
-//		mav.addObject("listobj22", map2);
-////		
-////		System.out.println("gameidsdsds:: "+gameids);
-//		mav.addObject("game", userGame);
-//
-//		Map<Integer, UserGame> GameMap = new LinkedHashMap<>();
-//		Map<String, String> genders = new LinkedHashMap<String, String>();
-//		genders.put("M", "Male");
-//		genders.put("F", "Female");
-//		mav.addObject("genders", genders);
-//
-//		return mav;
-//	}
 
 	@GetMapping("/attemptinfo")
 	public ModelAndView attemptinfo(@RequestParam("gameId") Long gameId,
@@ -346,8 +486,7 @@ public class UserController {
 	}
 
 	@GetMapping("/changeAttempt")
-	public ModelAndView changeAttempt(@RequestParam("attempt") int attempt,
-			@RequestParam("mobile") String mobile) {
+	public ModelAndView changeAttempt(@RequestParam("attempt") int attempt, @RequestParam("mobile") String mobile) {
 		ModelAndView mav = new ModelAndView("attemptinfo");
 		UserGame userGame = gamerepo.getByAtmptNo(attempt, mobile);
 		User gameid = repo.getGameId(Long.parseLong(mobile));
@@ -397,12 +536,6 @@ public class UserController {
 		System.out.println("getObject >>>>>>> " + getObject);
 		JSONArray getArray = jsonObject.getJSONArray("QuestionData");
 		System.out.println("getArraytObject >>>>>>> " + getArray);
-		/*
-		 * for (int i = 0; i < getArray.length(); i++) { JSONObject innerObj =
-		 * getArray.getJSONObject(i); for (Iterator it = innerObj.keys(); it.hasNext();)
-		 * { String key = (String) it.next(); System.out.println(key + ":" +
-		 * innerObj.get(key)); } }
-		 */
 		System.out.println();
 //		ObjectMapper mapper = new ObjectMapper();
 //		Welcome welcome = mapper.readValue(json, Welcome.class);
@@ -413,12 +546,14 @@ public class UserController {
 		String duration = (String) getObject.get("Duration");
 		String dateTime = (String) getObject.get("DateTime");
 		String percentage = (String) getObject.get("Percentage");
+		String starPoints = (String) getObject.get("StarPoints");
 		System.out.println("done: " + phone + " " + feedback + " " + duration + " " + dateTime + " "
-				+ percentage);
+				+ percentage + " " + starPoints);
 		UserGame q2 = new UserGame();
 //		for (int i = 0; i < getArray.length(); i++) {
+		System.out.println("**********************BEFORE****************************************  object 0");
 		JSONObject objects1 = getArray.getJSONObject(0);
-
+		System.out.println("**********************AFTER**************************************** object 0");
 //			Question q2 = new Question();
 		String objective1 = (String) objects1.get("objective");
 		String qNo1 = (String) objects1.get("qNo");
@@ -439,9 +574,11 @@ public class UserController {
 		q2.setQa1(option1);
 		q2.setRestult1(result1);
 		q2.setType1(type1);
+		q2.setStarPoints(Long.parseLong(starPoints));
 
+		System.out.println("**********************BEFORE**************************************** 1");
 		JSONObject objects2 = getArray.getJSONObject(1);
-
+		System.out.println("**********************AFTER**************************************** 1");
 //			Question q2 = new Question();
 		String objective2 = (String) objects2.get("objective");
 		String qNo2 = (String) objects2.get("qNo");
@@ -458,7 +595,9 @@ public class UserController {
 		q2.setRestult2(result2);
 		q2.setType2(type2);
 
+		System.out.println("**********************BEFORE**************************************** 2");
 		JSONObject objects3 = getArray.getJSONObject(2);
+		System.out.println("**********************AFTER**************************************** 2");
 
 //			Question q2 = new Question();
 		String objective3 = (String) objects3.get("objective");
@@ -475,7 +614,9 @@ public class UserController {
 		q2.setRestult3(result3);
 		q2.setType3(type3);
 
+		System.out.println("**********************BEFORE**************************************** 3");
 		JSONObject objects4 = getArray.getJSONObject(3);
+		System.out.println("**********************BEFORE**************************************** 3");
 
 //			Question q2 = new Question();
 		String objective4 = (String) objects4.get("objective");
@@ -492,7 +633,9 @@ public class UserController {
 		q2.setRestult4(result4);
 		q2.setType4(type4);
 
+		System.out.println("**********************BEFORE**************************************** 4");
 		JSONObject objects5 = getArray.getJSONObject(4);
+		System.out.println("**********************AFTER**************************************** 4");
 
 //			Question q2 = new Question();
 		String objective5 = (String) objects5.get("objective");
@@ -509,8 +652,9 @@ public class UserController {
 		q2.setRestult5(result5);
 		q2.setType5(type5);
 
+		System.out.println("**********************BEFORE**************************************** 5");
 		JSONObject objects6 = getArray.getJSONObject(5);
-
+		System.out.println("**********************AFTER**************************************** 5");
 //			Question q2 = new Question();
 		String objective6 = (String) objects6.get("objective");
 		String qNo6 = (String) objects6.get("qNo");
@@ -526,8 +670,9 @@ public class UserController {
 		q2.setRestult6(result6);
 		q2.setType6(type6);
 
+		System.out.println("**********************BEFORE**************************************** 6");
 		JSONObject objects7 = getArray.getJSONObject(6);
-
+		System.out.println("**********************AFTER**************************************** 6");
 //			Question q2 = new Question();
 		String objective7 = (String) objects7.get("objective");
 		String qNo7 = (String) objects7.get("qNo");
@@ -542,9 +687,9 @@ public class UserController {
 		q2.setQa7(option7);
 		q2.setRestult7(result7);
 		q2.setType7(type7);
-
+		System.out.println("**********************BEFORE****************************************  7");
 		JSONObject objects8 = getArray.getJSONObject(7);
-
+		System.out.println("**********************AFTER**************************************** 7");
 //			Question q2 = new Question();
 		String objective8 = (String) objects8.get("objective");
 		String qNo8 = (String) objects8.get("qNo");
@@ -624,8 +769,18 @@ public class UserController {
 
 	@PostMapping({ "/savefeedback" })
 	public ResponseEntity<?> savefeedback(@RequestBody String mobile) throws ResourceNotFoundExceptionTest {
-		System.out.println("get feedback: " + mobile);
-		JSONObject jsonObject = new JSONObject(mobile);
+		System.out.println("get feedback:>>>>>>>> " + mobile);
+		String url = mobile;
+		String result = "";
+		try {
+			result = java.net.URLDecoder.decode(url, StandardCharsets.UTF_8.name());
+			System.out.println("check url:>>>>>>>>  " + result);
+		} catch (UnsupportedEncodingException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
+		JSONObject jsonObject = new JSONObject(result);
+		System.out.println("jsonObject::::::::::::::  " + jsonObject);
 		String mob = (String) jsonObject.get("mobile");
 		String feed1 = (String) jsonObject.get("feedback1");
 		String feed2 = (String) jsonObject.get("feedback2");
@@ -649,7 +804,7 @@ public class UserController {
 
 		Session session = Session.getInstance(props, new javax.mail.Authenticator() {
 			protected PasswordAuthentication getPasswordAuthentication() {
-				return new PasswordAuthentication("gulfarooqui1@gmail.com", "Gulrez#7326");
+				return new PasswordAuthentication("gulfarooqui1@gmail.com", "Gmail#7326");
 			}
 
 		});
